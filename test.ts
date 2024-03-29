@@ -1,56 +1,33 @@
-import { PKPViemAccount } from "./lib/pkp-viem";
-import { LitLogger } from "./utils";
-import { CONTROLLER_AUTHSIG, PKP_PUBKEY } from "./config.json";
 import {
   createWalletClient,
   http,
   verifyMessage,
   verifyTypedData,
-  defineChain,
   parseEther,
 } from "viem";
-
-// Define Custom Chain for Lit Chronicle
-const chronicle = defineChain({
-  id: 175177,
-  name: "Chronicle",
-  network: "chronicle",
-  nativeCurrency: {
-    decimals: 18,
-    name: "LIT",
-    symbol: "LIT",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://chain-rpc.litprotocol.com/http"],
-    },
-    public: {
-      http: ["https://chain-rpc.litprotocol.com/http"],
-    },
-  },
-});
-
-const logger = new LitLogger("[ViemTest/main.ts]", true);
+import { NearViemAccountFactory } from "./lib/near-viem";
+import { Account, KeyPair, connect, keyStores } from "near-api-js";
+import { sepolia } from "viem/chains";
 
 // get arguments from command line
 const args = process.argv.slice(2);
 
 /**
  * Test cases:
- * 1 = create a PKP Viem Account
+ * 1 = create a near Viem Account
  * 2 = create a Viem Wallet Client and send a transaction
- * 3 = create a PKP Viem Account and sign Typed Data
- * 4 = create a PKP Viem Account and sign message
- * 5 = create a PKP Viem Account and
+ * 3 = create a near Viem Account and sign Typed Data
+ * 4 = create a near Viem Account and sign message
+ * 5 = create a near Viem Account and
  */
 if (args.length === 0) {
   console.log("\nUsage: node main.js <test case number>\n");
   console.log(" Test cases:");
-  console.log(" 1 = create a pkp wallet");
-  console.log(" 2 = create a pkp wallet and sign message");
-  console.log(" 3 = create a PKP wallet and sign typed data");
-  console.log(" 4 = create a PKP wallet and send a transaction");
-  console.log(" 5 = create a PKP wallet and send Raw Transaction ");
+  console.log(" 1 = create a Near wallet");
+  console.log(" 2 = create a Near wallet and sign message");
+  console.log(" 3 = create a Near wallet and sign typed data");
+  console.log(" 4 = create a Near wallet and send a transaction");
+  console.log(" 5 = create a Near wallet and send Raw Transaction ");
   process.exit(0);
 }
 
@@ -58,21 +35,72 @@ if (args.length === 0) {
 const TEST_CASE = parseInt(args[0]);
 
 const testCaseMap = {
-  1: testPKPWallet,
-  2: testPKPWalletAndSignMessage,
-  3: testPKPWalletAndSignTypedData,
-  4: testPKPWalletAndSendTransaction,
-  5: testPKPWalletSendRawTransaction,
+  1: testNearWallet,
+  2: testNearWalletAndSignMessage,
+  3: testNearWalletAndSignTypedData,
+  4: testNearWalletAndSendTransaction,
+  5: testNearWalletSendRawTransaction,
 };
 
-async function testPKPWallet() {
-  const account = createPKPViemAccount();
-  logger.log("account", account);
-  return account;
+const TESTNET_CONFIG = {
+  networkId: "testnet",
+  nodeUrl: "https://rpc.testnet.near.org",
+};
+
+interface NearConfig {
+  networkId: string;
+  nodeUrl: string;
 }
 
-async function testPKPWalletAndSignMessage() {
-  const account = createPKPViemAccount();
+/**
+ * Loads Near Account from process.env.
+ * Defaults to TESTNET_CONFIG if no network configuration is provided
+ * @param network {NearConfig} network settings
+ * @returns {Account}
+ */
+const nearAccountFromEnv = async (
+  network: NearConfig = TESTNET_CONFIG
+): Promise<Account> => {
+  const keyPair = KeyPair.fromString(
+    "ed25519:21G5n2oCE2oS88m9XEPVtDWqC5y4trc5r66Djq4ZJTDxt8nf1f53SnUUokXFVWAHsYdc9cvK89eqSZmoWJtDT5vH"
+  );
+  return nearAccountFromKeyPair({
+    keyPair,
+    accountId: "nearviem.testnet",
+    network,
+  });
+};
+
+/**
+ * Loads Near Account from provided keyPair and accountId
+ * Defaults to TESTNET_CONFIG
+ * @param keyPair {KeyPair}
+ * @param accountId {string}
+ * @param network {NearConfig} network settings
+ * @returns {Account}
+ */
+const nearAccountFromKeyPair = async (config: {
+  keyPair: KeyPair;
+  accountId: string;
+  network?: NearConfig;
+}): Promise<Account> => {
+  const keyStore = new keyStores.InMemoryKeyStore();
+  await keyStore.setKey("testnet", config.accountId, config.keyPair);
+  const near = await connect({
+    ...(config.network || TESTNET_CONFIG),
+    keyStore,
+  });
+  const account = await near.account(config.accountId);
+  return account;
+};
+
+async function testNearWallet() {
+  const account = await createNearViemAccount();
+  console.log("account", account.address);
+}
+
+async function testNearWalletAndSignMessage() {
+  const account = await createNearViemAccount();
 
   const sig = await account.signMessage({ message: "Hello World" });
 
@@ -81,11 +109,10 @@ async function testPKPWalletAndSignMessage() {
     message: "Hello World",
     signature: sig,
   });
-  logger.log("valid", valid);
-  logger.log("signature", sig);
+  console.log("valid", valid);
 }
 
-async function testPKPWalletAndSignTypedData() {
+async function testNearWalletAndSignTypedData() {
   // message
   const message = {
     from: {
@@ -120,14 +147,13 @@ async function testPKPWalletAndSignTypedData() {
     ],
   } as const;
 
-  const account = createPKPViemAccount();
+  const account = await createNearViemAccount();
   const signature = await account.signTypedData({
     domain: domain,
     types: types,
     primaryType: "Mail",
     message: message,
   });
-  logger.log("signature", signature);
 
   const valid = await verifyTypedData({
     address: account.address,
@@ -137,44 +163,49 @@ async function testPKPWalletAndSignTypedData() {
     message,
     signature: signature,
   });
-  logger.log("valid", valid);
+  console.log("valid", valid);
 }
 
-async function testPKPWalletAndSendTransaction() {
-  const account = createPKPViemAccount();
+async function testNearWalletAndSendTransaction() {
+  const account = await createNearViemAccount();
   const walletClient = createWalletClient({
     account: account,
     transport: http(),
-    chain: chronicle,
+    chain: sepolia,
   });
+
   const hash = await walletClient.sendTransaction({
     account,
     to: account.address,
-    value: parseEther("0"),
+    value: parseEther("0.0001"),
     chain: walletClient.chain,
+    kzg: undefined,
   });
-  logger.log("Transaction Hash", hash);
+  // check hash at sepolia scan
+  console.log("hash", hash);
 }
 
-async function testPKPWalletSendRawTransaction() {
-  const account = createPKPViemAccount();
+async function testNearWalletSendRawTransaction() {
+  const account = await createNearViemAccount();
   const walletClient = createWalletClient({
     account: account,
     transport: http(),
-    chain: chronicle,
+    chain: sepolia,
   });
+  // const kzg = setupKzg(cKzg, mainnetTrustedSetupPath);
   const request = await walletClient.prepareTransactionRequest({
     account,
     to: account.address,
-    value: parseEther("0"),
+    value: parseEther("0.0001"),
     chain: walletClient.chain,
+    kzg: undefined,
   });
   const signature = await walletClient.signTransaction(request);
-  logger.log("signature", signature);
   const hash = await walletClient.sendRawTransaction({
     serializedTransaction: signature,
   });
-  logger.log("hash", hash);
+  // check hash at sepolia scan
+  console.log("hash", hash);
 }
 
 /**
@@ -184,20 +215,11 @@ async function testPKPWalletSendRawTransaction() {
 (async () => {
   try {
     await testCaseMap[TEST_CASE]();
-  } catch (e) {
-    logger.throwError(e.message);
-  }
+  } catch (e) {}
 })();
 
-/**
- * Creates a PKP wallet
- * @returns { PKPViemAccount } wallet
- */
-function createPKPViemAccount(): PKPViemAccount {
-  logger.log("...creating a PKP Viem Account");
-  const account = new PKPViemAccount({
-    controllerAuthSig: CONTROLLER_AUTHSIG,
-    pkpPubKey: PKP_PUBKEY,
-  });
-  return account;
+async function createNearViemAccount() {
+  const account = await nearAccountFromEnv();
+  const viemAccount = await NearViemAccountFactory(account);
+  return viemAccount;
 }

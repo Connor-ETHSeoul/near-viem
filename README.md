@@ -1,6 +1,7 @@
-# pkp-viem
+# near-viem
 
-This module is a modified version of Custom Account interface `toAccount()` from `viem`. `PKPViemAccount` does not store private key but still has all the functionality of its counterpart. `PKPViemAccount` class extended `PKPBase` class and implemented `LocalAccount` from `viem`,
+This module is a modified version of Custom Account interface `toAccount()` from `viem`. `NearViemAccount` uses Chain Signatures to sign messages and transactions.
+
 
 What is viem?
 https://viem.sh/docs/introduction.html
@@ -10,34 +11,29 @@ API: https://viem.sh/docs/accounts/custom.html
 # Getting Started
 
 ```
-yarn add pkp-viem viem
-```
-
-#### if you want to use lit-protocol js-sdk V2
-
-```
-yarn add pkp-viem@serrano viem
+yarn add near-viem viem
 ```
 
 ## Running unit tests
 
-Run `yarn start <test-case>` or `yar dev <test-case>` to execute the test.
+Run `yarn test <test-case>` to execute the test.
 
 ```
 /**
  * Test cases:
- * 1 = create a PKP Viem Account
- * 2 = create a PKP Viem Account and sign message
- * 3 = create a PKP Viem Account and sign Typed Data
- * 4 = create a PKP Viem Wallet Client and send a transaction
- * 5 = create a PKP Viem Account and send raw transaction
+ * 1 = create a Near Viem Account
+ * 2 = create a Near Viem Account and sign message
+ * 3 = create a Near Viem Account and sign Typed Data
+ * 4 = create a Near Viem Wallet Client and send a transaction
+ * 5 = create a Near Viem Account and send raw transaction
  */
 ```
 
 # Examples
 
 You can use Accoun action and Wallet action.
-`PKPViemAccount` is a `LocalAccount`, User can use Account Action with it. <br>
+`NearViemAccount` is a `LocalAccount`, User can use Account Action with it. <br>
+`NearViemAccountFactory` is an initialization function for creating `NearViemAccount`<br>
 using `createWalletClient` User can use Wallet Action.
 
 Wallet Action: https://viem.sh/docs/actions/wallet/introduction.html <br>
@@ -48,12 +44,9 @@ Account Action: https://viem.sh/docs/accounts/custom.html
 ### Create a account and get the address
 
 ```typescript
-import { PKPViemAccount } from "viem";
+import { NearViemAccountFactory } from "near-viem";
 
-const account = new PKPViemAccount({
-  controllerAuthSig: AuthSig,
-  pkpPubKey: PKPPubKey,
-});
+const account = await NearViemAccountFactory(account);
 
 return account.address;
 ```
@@ -157,11 +150,8 @@ const valid = await verifyTypedData({
 ### Sign Transaction
 
 ```typescript
-// viem has a built-in serializer for Legacy, EIP-2930 (0x01) and EIP-1559 (0x02) transaction types
- You can pass legacy, eip2930, eip1559 as a type
 const signature = await account.signTransaction({
   to: recipient,
-  type: 'legacy',
 });
 ```
 
@@ -170,27 +160,8 @@ const signature = await account.signTransaction({
 ### Create Wallet Client
 
 ```typescript
-import { defineChain, createWalletClient, http } from "viem";
-
-// Define Custom Chain for Lit Chronicle
-const chronicle = defineChain({
-  id: 175177,
-  name: "Chronicle",
-  network: "chronicle",
-  nativeCurrency: {
-    decimals: 18,
-    name: "LIT",
-    symbol: "LIT",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://chain-rpc.litprotocol.com/http"],
-    },
-    public: {
-      http: ["https://chain-rpc.litprotocol.com/http"],
-    },
-  },
-});
+import { createWalletClient, http } from "viem";
+import { sepolia } from "viem/chains";
 
 const account = new PKPViemAccount({
   controllerAuthSig: AuthSig,
@@ -200,7 +171,7 @@ const account = new PKPViemAccount({
 const walletClient = createWalletClient({
   account: account,
   transport: http(),
-  chain: chronicle,
+  chain: sepolia,
 });
 ```
 
@@ -212,6 +183,7 @@ const hash = await walletClient.sendTransaction({
   to: recipient,
   value: amount,
   chain: walletClient.chain,
+  kzg: undefined,
 });
 ```
 
@@ -224,6 +196,7 @@ const request = await walletClient.prepareTransactionRequest({
   to: recipient,
   value: amount,
   chain: walletClient.chain,
+  kzg: undefined,
 });
 
 const signature = await walletClient.signTransaction(request);

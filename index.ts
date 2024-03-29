@@ -1,3 +1,2 @@
-import { PKPViemAccount } from "./lib/pkp-viem";
-import { convertAccountToSmartAccountSigner } from "./lib/utils/accountToSmartAccount";
-export { PKPViemAccount, convertAccountToSmartAccountSigner };
+import { NearViemAccount, NearViemAccountFactory } from "./lib/near-viem";
+export { NearViemAccount, NearViemAccountFactory };

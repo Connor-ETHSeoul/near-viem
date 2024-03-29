@@ -60,5 +60,4 @@ export class MultichainContract {
     });
     return { big_r, big_s };
   };
-
 }

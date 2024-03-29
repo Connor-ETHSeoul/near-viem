@@ -80,4 +80,3 @@ export interface MPCSignature {
   big_r: string;
   big_s: string;
 }
-
