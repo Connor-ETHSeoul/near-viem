@@ -1,9 +1,0 @@
-{
-  "CONTROLLER_AUTHSIG": {
-    "sig": "0xd2e58a1b39452255e5d366e2b1afcf21c90a2ff9bd4048f909ea89ee66dadbf5545ffa7bf2891636eb191cdbc107dc1c98dcc91a2dfd2670e159faf877ceb3711c",
-    "derivedVia": "web3.eth.personal.sign",
-    "signedMessage": "localhost wants you to sign in with your Ethereum account:\n0xeF71c2604f17Ec6Fc13409DF24EfdC440D240d37\n\nThis is a test statement.  You can put anything you want here.\n\nURI: https://localhost/login\nVersion: 1\nChain ID: 1\nNonce: 0xa177a5c051531d093915b710656129a825434b54b2e35db7916279efccbecd36\nIssued At: 2024-02-28T05:37:24.697Z\nExpiration Time: 2024-02-28T06:37:24.692Z",
-    "address": "0xeF71c2604f17Ec6Fc13409DF24EfdC440D240d37"
-  },
-  "PKP_PUBKEY": "043a983b46327040564ad59418d8c047f634c1fb4e4976338afdbc896c9ef2cb146998d87cb46f1f61d2f0f4b8731de750d0e433ef2efb6376002459a5cc6416e1"
-}
