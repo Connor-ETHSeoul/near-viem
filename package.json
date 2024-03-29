@@ -1,0 +1,35 @@
+{
+  "name": "pkp-viem",
+  "author": "altpd13",
+  "version": "3.0.6",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup index.ts --format cjs,esm --dts",
+    "release": "yarn build && changeset publish",
+    "test": "TS_NODE_PREFER_TS_EXTS=true ts-node test.ts",
+    "dev": "nodemon --watch . --ext js,ts --exec \"TS_NODE_PREFER_TS_EXTS=true ts-node test.ts\""
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/altpd13/pkp-viem.git"
+  },
+  "dependencies": {
+    "@lit-protocol/lit-node-client": "^3.2.2",
+    "@lit-protocol/pkp-base": "^3.2.2",
+    "@lit-protocol/types": "^3.2.2",
+    "viem": "^2.7.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "@changesets/cli": "^2.26.2",
+    "tsup": "^7.2.0",
+    "typescript": "^5.3.2"
+  }
+}
