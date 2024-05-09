@@ -25,7 +25,7 @@ import { SerializeTransactionFn, publicKeyToAddress, toHex } from "viem/utils";
 import { MultichainContract } from "./mpcContract";
 import { uncompressedHexPointToEvmAddress } from "./kdf";
 
-const MPC_CONTRACT = "multichain-testnet-2.testnet";
+const MPC_CONTRACT = "v2.multichain-mpc.testnet";
 
 export async function NearViemAccountFactory(
   account: Account,

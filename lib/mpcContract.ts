@@ -1,9 +1,7 @@
 import { Contract, Account } from "near-api-js";
-import { Address } from "viem";
 import {
   deriveChildPublicKey,
   najPublicKeyStrToUncompressedHexPoint,
-  uncompressedHexPointToEvmAddress,
 } from "./kdf";
 import BN from "bn.js";
 import { ChangeMethodArgs, MPCSignature, SignArgs } from "./types";
@@ -54,8 +52,8 @@ export class MultichainContract {
   ): Promise<MPCSignature> => {
     const [big_r, big_s] = await this.contract.sign({
       args: signArgs,
-      // Default of 200 TGAS
-      gas: gas || TGAS.muln(200),
+      // Default of 300 TGAS
+      gas: gas || TGAS.muln(300),
       attachedDeposit: new BN(NO_DEPOSIT),
     });
     return { big_r, big_s };
