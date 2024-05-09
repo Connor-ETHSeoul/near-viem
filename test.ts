@@ -170,7 +170,7 @@ async function testNearWalletAndSendTransaction() {
   const account = await createNearViemAccount();
   const walletClient = createWalletClient({
     account: account,
-    transport: http(),
+    transport: http('https://ethereum-sepolia-rpc.publicnode.com'),
     chain: sepolia,
   });
 
@@ -189,7 +189,7 @@ async function testNearWalletSendRawTransaction() {
   const account = await createNearViemAccount();
   const walletClient = createWalletClient({
     account: account,
-    transport: http(),
+    transport: http('https://ethereum-sepolia-rpc.publicnode.com'),
     chain: sepolia,
   });
   // const kzg = setupKzg(cKzg, mainnetTrustedSetupPath);
